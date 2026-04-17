@@ -3,6 +3,8 @@ import { getAllLezioni, LezioneConCorso } from "@/lib/models/lezioni";
 import { getAllCorsi } from "@/lib/models/corsi";
 import "./orari.css";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Orari Lezioni",
   description:

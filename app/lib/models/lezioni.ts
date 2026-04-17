@@ -84,33 +84,51 @@ export async function getLezioneById(id: number): Promise<LezioneRow | null> {
 }
 
 export async function createLezione(data: LezioneInput): Promise<boolean> {
-  const [result] = await pool.query(
+  if (!data.giorno_settimana?.trim() || !data.orario_inizio?.trim() || !data.orario_fine?.trim()) {
+    throw new Error("giorno_settimana, orario_inizio, and orario_fine are required");
+  }
+  if (!Number.isInteger(data.id_corso) || data.id_corso <= 0) {
+    throw new Error("id_corso must be a positive integer");
+  }
+  if (!/^\d{2}:\d{2}$/.test(data.orario_inizio) || !/^\d{2}:\d{2}$/.test(data.orario_fine)) {
+    throw new Error("orario_inizio and orario_fine must be in HH:MM format");
+  }
+
+  const [result] = await pool.execute(
     "INSERT INTO lezioni (giorno_settimana, orario_inizio, orario_fine, id_corso) VALUES (?, ?, ?, ?)",
-    [data.giorno_settimana, data.orario_inizio, data.orario_fine, data.id_corso]
+    [data.giorno_settimana.trim(), data.orario_inizio.trim(), data.orario_fine.trim(), data.id_corso]
   );
-  return (result as { affectedRows: number }).affectedRows > 0;
+  return result.affectedRows > 0;
 }
 
 export async function updateLezione(id: number, data: Partial<LezioneInput>): Promise<boolean> {
+  if (data.id_corso !== undefined && (!Number.isInteger(data.id_corso) || data.id_corso <= 0)) {
+    throw new Error("id_corso must be a positive integer");
+  }
+  if ((data.orario_inizio && !/^\d{2}:\d{2}$/.test(data.orario_inizio)) ||
+      (data.orario_fine && !/^\d{2}:\d{2}$/.test(data.orario_fine))) {
+    throw new Error("orario_inizio and orario_fine must be in HH:MM format");
+  }
+
   const fields: string[] = [];
   const values: unknown[] = [];
 
-  if (data.giorno_settimana !== undefined) { fields.push("giorno_settimana = ?"); values.push(data.giorno_settimana); }
-  if (data.orario_inizio    !== undefined) { fields.push("orario_inizio = ?");    values.push(data.orario_inizio); }
-  if (data.orario_fine      !== undefined) { fields.push("orario_fine = ?");      values.push(data.orario_fine); }
+  if (data.giorno_settimana !== undefined) { fields.push("giorno_settimana = ?"); values.push(data.giorno_settimana.trim()); }
+  if (data.orario_inizio    !== undefined) { fields.push("orario_inizio = ?");    values.push(data.orario_inizio.trim()); }
+  if (data.orario_fine      !== undefined) { fields.push("orario_fine = ?");      values.push(data.orario_fine.trim()); }
   if (data.id_corso         !== undefined) { fields.push("id_corso = ?");         values.push(data.id_corso); }
 
   if (fields.length === 0) return false;
   values.push(id);
 
-  const [result] = await pool.query(
+  const [result] = await pool.execute(
     `UPDATE lezioni SET ${fields.join(", ")} WHERE id_lezione = ?`,
     values
   );
-  return (result as { affectedRows: number }).affectedRows > 0;
+  return result.affectedRows > 0;
 }
 
 export async function deleteLezione(id: number): Promise<boolean> {
-  const [result] = await pool.query("DELETE FROM lezioni WHERE id_lezione = ?", [id]);
-  return (result as { affectedRows: number }).affectedRows > 0;
+  const [result] = await pool.execute("DELETE FROM lezioni WHERE id_lezione = ?", [id]);
+  return result.affectedRows > 0;
 }

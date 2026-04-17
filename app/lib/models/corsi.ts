@@ -34,33 +34,46 @@ export async function getCorsoById(id: number): Promise<CorsoRow | null> {
 }
 
 export async function createCorso(data: CorsoInput): Promise<boolean> {
-  const [result] = await pool.query(
+  if (!data.nome?.trim() || !data.sottotitolo?.trim() || !data.descrizione?.trim() || !data.eta?.trim()) {
+    throw new Error("All fields are required and cannot be empty");
+  }
+  if (data.nome.length > 255 || data.sottotitolo.length > 255 || data.eta.length > 50) {
+    throw new Error("Field length exceeds maximum allowed");
+  }
+
+  const [result] = await pool.execute(
     "INSERT INTO corsi (nome, sottotitolo, descrizione, eta) VALUES (?, ?, ?, ?)",
-    [data.nome, data.sottotitolo, data.descrizione, data.eta]
+    [data.nome.trim(), data.sottotitolo.trim(), data.descrizione.trim(), data.eta.trim()]
   );
-  return (result as { affectedRows: number }).affectedRows > 0;
+  return result.affectedRows > 0;
 }
 
 export async function updateCorso(id: number, data: Partial<CorsoInput>): Promise<boolean> {
+  if ((data.nome && data.nome.length > 255) ||
+      (data.sottotitolo && data.sottotitolo.length > 255) ||
+      (data.eta && data.eta.length > 50)) {
+    throw new Error("Field length exceeds maximum allowed");
+  }
+
   const fields: string[] = [];
   const values: unknown[] = [];
 
-  if (data.nome        !== undefined) { fields.push("nome = ?");        values.push(data.nome); }
-  if (data.sottotitolo !== undefined) { fields.push("sottotitolo = ?"); values.push(data.sottotitolo); }
-  if (data.descrizione !== undefined) { fields.push("descrizione = ?"); values.push(data.descrizione); }
-  if (data.eta         !== undefined) { fields.push("eta = ?");         values.push(data.eta); }
+  if (data.nome        !== undefined) { fields.push("nome = ?");        values.push(data.nome.trim()); }
+  if (data.sottotitolo !== undefined) { fields.push("sottotitolo = ?"); values.push(data.sottotitolo.trim()); }
+  if (data.descrizione !== undefined) { fields.push("descrizione = ?"); values.push(data.descrizione.trim()); }
+  if (data.eta         !== undefined) { fields.push("eta = ?");         values.push(data.eta.trim()); }
 
   if (fields.length === 0) return false;
   values.push(id);
 
-  const [result] = await pool.query(
+  const [result] = await pool.execute(
     `UPDATE corsi SET ${fields.join(", ")} WHERE id = ?`,
     values
   );
-  return (result as { affectedRows: number }).affectedRows > 0;
+  return result.affectedRows > 0;
 }
 
 export async function deleteCorso(id: number): Promise<boolean> {
-  const [result] = await pool.query("DELETE FROM corsi WHERE id = ?", [id]);
-  return (result as { affectedRows: number }).affectedRows > 0;
+  const [result] = await pool.execute("DELETE FROM corsi WHERE id = ?", [id]);
+  return result.affectedRows > 0;
 }

@@ -72,7 +72,13 @@ export async function verifyToken(token: string): Promise<JwtPayload> {
   const parts = token.split(".");
   if (parts.length !== 3) throw new Error("Token malformato.");
 
-  const [header, body, sig] = parts;
+  const [headerB64, body, sig] = parts;
+
+  const header: { alg?: string } = JSON.parse(new TextDecoder().decode(b64urlDecode(headerB64)));
+  if (header.alg !== "HS256") {
+    throw new Error("Algorithm not allowed.");
+  }
+
   const key = await getKey();
 
   const valid = await crypto.subtle.verify(
