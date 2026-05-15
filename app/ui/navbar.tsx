@@ -3,9 +3,8 @@ export function Navbar() {
   const links = [
     { href: "/",           label: "Home" },
     { href: "/chi-siamo",  label: "Chi Siamo" },
-    { href: "/corsi",      label: "Corsi" },
-    { href: "/",           label: "Orari" },
-    { href: "/istruttori", label: "Istruttori" },
+    { href: "/",      label: "Corsi" },
+    { href: "/istruttori", label: "Istruttori" }
   ];
 
   return (

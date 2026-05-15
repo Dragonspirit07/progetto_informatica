@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Navbar } from "./ui/navbar";
-import { Footer } from "./ui/footer";
-
 
 export const metadata: Metadata = {
   title: {
@@ -15,7 +12,6 @@ export const metadata: Metadata = {
   icons: { icon: "/images/aiki-center-logo.png" },
 };
 
-/* ── ROOT LAYOUT ─────────────────────────────────────────────────── */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="it" className="root-layout">
@@ -25,11 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"
         />
       </head>
-      <body>
-        <Navbar />
-        {children}
-        <Footer />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
